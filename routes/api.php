@@ -42,6 +42,12 @@ Route::prefix('/genre')->controller('App\Http\Controllers\GenreController')->gro
     });
 });
 
+Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(function () {
+    Route::middleware('auth.jwt')->group(function () {
+        Route::post('', 'createAd');
+    });
+});
+
 Route::fallback(function () {
     return response(['message' => 'Undefined route'], 404);
 });

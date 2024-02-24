@@ -18,4 +18,9 @@ class Genre extends Model
     {
         return $this->belongsToMany(User::class);
     }
+
+    public function ads(): BelongsToMany
+    {
+        return $this->belongsToMany(Ad::class);
+    }
 }
