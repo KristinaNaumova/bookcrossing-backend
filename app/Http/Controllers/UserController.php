@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Contact;
+use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -74,5 +75,13 @@ class UserController extends Controller
                 ]);
             }
         });
+    }
+
+    function getUserFavouriteGenres(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+        $user = User::find($userId);
+        
+        return $user->genres()->get();
     }
 }

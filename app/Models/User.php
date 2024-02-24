@@ -28,6 +28,11 @@ class User extends Model
         return $this->hasMany(Contact::class);
     }
 
+    public function genres(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class);
+    }
+
     public function getFacultyAttribute($value): string
     {
         $facultyName = DB::table('faculties')->find($value);
