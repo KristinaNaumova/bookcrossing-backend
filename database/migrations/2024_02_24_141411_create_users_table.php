@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->string('id');
+            $table->string('id')->primary();
             $table->string('name')->nullable();
             $table->string('faculty_id')->nullable();
-            $table->double('rating')->default(10)->nullable();
+            $table->double('rating')->nullable();
+            $table->boolean('is_banned')->default(false);
             $table->text('access_token')->nullable();
             $table->text('refresh_token')->nullable();
-            $table->primary('id');
             $table->timestamps();
         });
     }

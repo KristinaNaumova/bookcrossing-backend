@@ -16,6 +16,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/auth')->controller('App\Http\Controllers\AuthController')->group(function () {
     Route::post('/login', 'login');
+    Route::post('/refresh', 'refresh');
+});
+
+Route::prefix('/user')->controller('App\Http\Controllers\UserController')->group(function () {
+    Route::middleware('auth.jwt')->group(function () {
+        Route::get('/my', 'getUserInfo');
+    });
 });
 
 Route::fallback(function () {
