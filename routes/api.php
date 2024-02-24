@@ -36,6 +36,12 @@ Route::prefix('/location')->controller('App\Http\Controllers\LocationController'
     });
 });
 
+Route::prefix('/genre')->controller('App\Http\Controllers\GenreController')->group(function () {
+    Route::middleware('auth.jwt')->group(function () {
+        Route::get('', 'getAllGenres');
+    });
+});
+
 Route::fallback(function () {
     return response(['message' => 'Undefined route'], 404);
 });
