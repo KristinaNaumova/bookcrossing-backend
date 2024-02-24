@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::prefix('/auth')->controller('App\Http\Controllers\AuthController')->group(function () {
+    Route::post('/login', 'login');
+});
+
+Route::fallback(function () {
+    return response(["message" => "Undefined route"], 404);
 });
