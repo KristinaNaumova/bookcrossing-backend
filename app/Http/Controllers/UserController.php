@@ -81,7 +81,26 @@ class UserController extends Controller
     {
         $userId = $request['userInfo']['id'];
         $user = User::find($userId);
-        
+
         return $user->genres()->get();
+    }
+
+    function updateUserFavouriteGenres(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+        $user = User::find($userId);
+
+        $validatedData = $request->validate([
+            'genres' => 'nullable|array',
+            'genres.*' => Rule::exists('genres', 'id'),
+        ]);
+
+        DB::transaction(function () use ($validatedData, $user) {
+            $user->genres()->detach();
+
+            foreach ($validatedData['genres'] as $genre) {
+                $user->genres()->attach($genre);
+            }
+        });
     }
 }

@@ -26,6 +26,7 @@ Route::prefix('/user')->controller('App\Http\Controllers\UserController')->group
         Route::put('/my/location', 'updateUserLocations');
         Route::put('/my/contact', 'updateUserContacts');
         Route::get('/my/genre', 'getUserFavouriteGenres');
+        Route::put('/my/genre', 'updateUserFavouriteGenres');
     });
 });
 
