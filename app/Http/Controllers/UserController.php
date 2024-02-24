@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use PhpParser\Node\Expr\AssignOp\Concat;
 
 class UserController extends Controller
 {
@@ -41,8 +44,35 @@ class UserController extends Controller
 
         $user  = User::find($userId);
 
-        foreach ($validatedData['locations'] as $location) {
-            $user->locations()->attach($location);
-        }
+        DB::transaction(function () use ($user, $validatedData) {
+            $user->locations()->detach();
+
+            foreach ($validatedData['locations'] as $location) {
+                $user->locations()->attach($location);
+            }
+        });
+    }
+
+    function updateUserContacts(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        $validatedData = $request->validate([
+            'contacts' => 'nullable|array',
+            'contacts.*.contact_type' => 'required|string',
+            'contacts.*.contact' => 'required|string',
+        ]);
+
+        DB::transaction(function () use ($userId, $validatedData) {
+            Contact::where('user_id', $userId)->delete();
+
+            foreach ($validatedData['contacts'] as $contact) {
+                Contact::insert([
+                    'user_id' => $userId,
+                    'contact_type' => $contact['contact_type'],
+                    'contact' => $contact['contact'],
+                ]);
+            }
+        });
     }
 }

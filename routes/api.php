@@ -24,9 +24,10 @@ Route::prefix('/user')->controller('App\Http\Controllers\UserController')->group
         Route::get('/my', 'getMyInfo');
         Route::get('/{id}', 'getConcreteUserInfo');
         Route::put('/my/location', 'updateUserLocations');
+        Route::put('/my/contact', 'updateUserContacts');
     });
 });
 
 Route::fallback(function () {
-    return response(["message" => "Undefined route"], 404);
+    return response(['message' => 'Undefined route'], 404);
 });
