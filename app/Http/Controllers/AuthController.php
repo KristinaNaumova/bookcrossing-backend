@@ -25,7 +25,7 @@ class AuthController extends Controller
             if (!$user->exists()) {
                 User::insert([
                     'id' => $validatedData['id'],
-                    'faculty_id' => $validatedData['faculty_id'],
+                    'faculty' => $validatedData['faculty_id'],
                     'name' => $validatedData['name'],
                     'access_token' => $tokensPair['access_token'],
                     'refresh_token' => $tokensPair['refresh_token'],

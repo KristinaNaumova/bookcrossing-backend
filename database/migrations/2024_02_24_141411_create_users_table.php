@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('name')->nullable();
-            $table->string('faculty_id')->nullable();
+            $table->string('faculty')->nullable();
             $table->double('rating')->nullable();
             $table->boolean('is_banned')->default(false);
             $table->text('access_token')->nullable();
