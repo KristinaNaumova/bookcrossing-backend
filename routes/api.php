@@ -21,7 +21,8 @@ Route::prefix('/auth')->controller('App\Http\Controllers\AuthController')->group
 
 Route::prefix('/user')->controller('App\Http\Controllers\UserController')->group(function () {
     Route::middleware('auth.jwt')->group(function () {
-        Route::get('/my', 'getUserInfo');
+        Route::get('/my', 'getMyInfo');
+        Route::get('/{id}', 'getConcreteUserInfo');
     });
 });
 
