@@ -23,6 +23,7 @@ Route::prefix('/user')->controller('App\Http\Controllers\UserController')->group
     Route::middleware('auth.jwt')->group(function () {
         Route::get('/my', 'getMyInfo');
         Route::get('/{id}', 'getConcreteUserInfo');
+        Route::put('/my/location', 'updateUserLocations');
     });
 });
 
