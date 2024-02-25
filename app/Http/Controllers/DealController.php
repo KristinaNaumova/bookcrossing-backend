@@ -321,4 +321,44 @@ class DealController extends Controller
             abort(404, 'Undefined deal with id: ' . $dealId);
         }
     }
+
+    function confirmDealEnding(Request $request, $dealId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $deal = Deal::findOrFail($dealId);
+
+            $validatedData = $request->validate([
+                'code' => 'required|integer|min:6'
+            ]);
+
+            if ($deal['deal_status'] != 'RefundWaiting') {
+                abort(400, 'The deal status is not "RefundWaiting"');
+            }
+
+            if ($userId != $deal['second_member_id']) {
+                abort(403, 'You dont have permission to confirm deal ending');
+            }
+
+            if ($deal['code'] != $validatedData['code']) {
+                abort(400, 'Wrong code');
+            }
+
+            DB::transaction(function () use ($deal) {
+                $ad = Ad::find($deal['ad_id']);
+
+                $deal->update([
+                    'deal_status' => 'Finished',
+                ]);
+
+                $ad->update([
+                    'status' => 'Archived',
+                ]);
+            });
+
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined deal with id: ' . $dealId);
+        }
+    }
 }
