@@ -132,6 +132,8 @@ class DealController extends Controller
 
                 Response::where('ad_id', $ad['id'])->delete();
 
+                DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
+                
                 $ad->update([
                     'status' => 'InDeal',
                 ]);
