@@ -42,4 +42,11 @@ class AdController extends Controller
             $ad->genres()->attach($validatedData['genres']);;
         });
     }
+
+    function getMyAds(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        return Ad::where('user_id', $userId)->where('status', 'Active')->orWhere('status', 'inDeal')->get();
+    }
 }
