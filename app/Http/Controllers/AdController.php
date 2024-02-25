@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ad;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -55,5 +56,35 @@ class AdController extends Controller
         $userId = $request['userInfo']['id'];
 
         return Ad::where('user_id', $userId)->where('status', 'Archived')->get();
+    }
+
+    function moveAdToArchive(Request $request, $adId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::findOrFail($adId);
+
+            if ($ad['user_id'] != $userId) {
+                abort(403, 'This ad is not available to this user');
+            }
+
+            if ($ad['status'] == 'InDeal') {
+                abort(403, 'You cannot move ad in deal to archive');
+            }
+
+            if ($ad['status'] == 'Archived') {
+                abort(409, 'This ad is already in archive');
+            }
+
+            $ad->update([
+                'status' => 'Archived'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined ad with id: ' . $adId);
+        }
+
+
+
     }
 }
