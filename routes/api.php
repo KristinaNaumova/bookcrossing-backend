@@ -50,6 +50,7 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
         Route::post('/{adId}/archive', 'moveAdToArchive');
         Route::post('/{adId}/publish', 'publishAdFromArchive');
         Route::put('/{adId}', 'updateAd');
+        Route::get('', 'getAllAds');
     });
 });
 

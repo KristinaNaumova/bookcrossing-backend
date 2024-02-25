@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ad;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,7 @@ class AdController extends Controller
                 'comment' => $validatedData['comment'],
                 'type' => $validatedData['type'],
                 'deadline' => $validatedData['deadline'] ?? null,
+                'published_at' => date('Y-m-d H:i'),
             ]);
 
             $ad->genres()->attach($validatedData['genres']);;
@@ -78,7 +80,8 @@ class AdController extends Controller
             }
 
             $ad->update([
-                'status' => 'Archived'
+                'status' => 'Archived',
+                'published_at' => null,
             ]);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
@@ -102,6 +105,7 @@ class AdController extends Controller
 
             $ad->update([
                 'status' => 'Active',
+                'published_at' => date('Y-m-d H:i'),
             ]);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
@@ -154,5 +158,94 @@ class AdController extends Controller
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }
+    }
+
+    function getAllAds(Request $request)
+    {
+        $validatedData = $request->validate([
+            'sort' => 'nullable|in:AlphabetDesc,AlphabetAsc,DateDesc,DateAsc,Rating,Preferences',
+            'genres' => 'nullable|array',
+            'genres.*' => Rule::exists('genres', 'id'),
+            'type' => 'nullable|in:Exchange,Gift,Rent',
+            'page' => 'nullable|integer|min:0'
+        ]);
+
+        $userId = $request['userInfo']['id'];
+
+        $ads = Ad::query()->where('status', 'Active');
+
+        if (key_exists('type', $validatedData)) {
+            $ads->where('type', $validatedData['type']);
+        }
+
+        if (key_exists('genres', $validatedData)) {
+            $ads->leftJoin(DB::raw('ad_genre as ad_genre_table'), 'ads.id', '=', 'ad_genre_table.ad_id')
+                ->whereIn('ad_genre_table.genre_id', $validatedData['genres'])
+                ->select('ads.*')
+                ->distinct();
+        }
+
+        if (key_exists('sort', $validatedData)) {
+            switch ($validatedData['sort']) {
+                case 'AlphabetDesc':
+                    $ads->orderBy('book_name', 'DESC');
+                    break;
+                case 'AlphabetAsc':
+                    $ads->orderBy('book_name', 'ASC');
+                    break;
+                case 'DateDesc':
+                    $ads->orderBy('published_at', 'DESC');
+                    break;
+                case 'DateAsc':
+                    $ads->orderBy('published_at', 'ASC');
+                    break;
+                case 'Rating':
+                    $ads->join('users', 'ads.user_id', '=', 'users.id')
+                        ->orderByDesc('users.rating')
+                        ->select('ads.*');
+                case 'Preferences':
+                    $ads->leftJoin('ad_genre', 'ads.id', '=', 'ad_genre.ad_id')
+                        ->leftJoin('genre_user', function ($join) use ($userId) {
+                            $join->on('ad_genre.genre_id', '=', 'genre_user.genre_id')
+                                ->where('genre_user.user_id', '=', $userId);
+                        })
+                        ->select('ads.*', DB::raw('IF(genre_user.genre_id IS NULL, 0, 1) AS preferred'))
+                        ->orderByDesc('preferred');
+            }
+        }
+
+        $adsOnPage = 15;
+
+        $adsCount = $ads->count();
+
+        $pagesCount = ceil($adsCount / 15);
+
+        if ($pagesCount == 0) {
+            $pagesCount = 1;
+        }
+
+        if (key_exists('page', $validatedData)) {
+            $currentPage = $validatedData['page'];
+        } else {
+            $currentPage = 1;
+        }
+
+        if ($currentPage > $pagesCount) {
+            abort(409, 'Incorrect page');
+        }
+
+        $offset = ($adsOnPage * ($currentPage - 1));
+
+        $ads->offset($offset)->limit($adsOnPage);
+
+        $pagination = [
+            'size' => $adsOnPage,
+            'pagesCount' => $pagesCount,
+            'currentPageNumber' => $currentPage,
+        ];
+         return [
+             'ads' => $ads->with('genres')->with('user')->get(),
+             'pagination' => $pagination,
+         ];
     }
 }

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('deadline')->nullable();
             $table->enum('status', ['Active', 'InDeal', 'Archived'])->default('Active');
             $table->enum('type', ['Exchange', 'Rent', 'Gift']);
+            $table->dateTime('published_at')->nullable();
             $table->timestamps();
         });
     }

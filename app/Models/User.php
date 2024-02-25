@@ -39,4 +39,9 @@ class User extends Model
 
         return $facultyName->name;
     }
+
+    public function ads(): HasMany
+    {
+        return $this->hasMany(Ad::class);
+    }
 }
