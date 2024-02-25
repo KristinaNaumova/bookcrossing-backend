@@ -63,7 +63,8 @@ Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group
     Route::middleware('auth.jwt')->group(function () {
         Route::post('/offer/{adId}', 'offerDeal');
         Route::delete('/offer/{responseId}', 'cancelDealOffer');
-        Route::delete('/reject/{responseId}', 'rejectDealOffer');
+        Route::post('/reject/{responseId}', 'rejectDealOffer');
+        Route::get('/my/response', 'getMyResponses'); // отклики которые ОТПРАВИЛ пользователь
     });
 });
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ad;
 use App\Models\Response;
+use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 
@@ -38,10 +39,16 @@ class DealController extends Controller
                 abort(400, 'You dont point proposed book');
             }
 
+            if ($ad['type'] == 'Exchange') {
+                $proposedBook = $validated_data['proposed_book'];
+            } else {
+                $proposedBook = null;
+            }
+
             Response::insert([
                 'user_id' => $userId,
                 'ad_id' => $ad['id'],
-                'proposed_book' => $validated_data['proposed_book'] ?? null,
+                'proposed_book' => $proposedBook,
             ]);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
@@ -82,5 +89,14 @@ class DealController extends Controller
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined response with id: ' . $responseId);
         }
+    }
+
+    function getMyResponses(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        $user = User::find($userId);
+
+        return $user->responses()->with('ad')->get();
     }
 }

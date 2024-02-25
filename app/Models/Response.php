@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Response extends Model
 {
@@ -14,8 +14,13 @@ class Response extends Model
 
     protected $hidden = ['pivot'];
 
-    public function users(): BelongsToMany
+    public function user(): BelongsTo
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsTo(User::class);
+    }
+
+    public function ad(): BelongsTo
+    {
+        return $this->belongsTo(Ad::class);
     }
 }
