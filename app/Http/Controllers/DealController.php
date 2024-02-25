@@ -394,4 +394,94 @@ class DealController extends Controller
             abort(404, 'Undefined deal with id: ' . $dealId);
         }
     }
+
+    private function updateUserRating($userId, $evaluation)
+    {
+        //обновление рейтинга пользователя
+    }
+
+    function evaluateDeal(Request $request, $dealId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $deal = Deal::findOrFail($dealId);
+
+            $validatedData = $request->validate([
+                'evaluation' => 'required|min:1|max:10|integer'
+            ]);
+
+            if ($userId != $deal['first_member_id'] && $userId != $deal['second_member_id']) {
+                abort(403, 'You dont have permission to evaluate this deal');
+            }
+
+            if ($deal['deal_status'] != 'Finished') {
+                abort(403, 'You cannot rate this deal. It has not status "Finished"');
+            }
+
+            if ($userId == $deal['first_member_id']) {
+                if ($deal['first_member_evaluation'] != null) {
+                    abort(409, 'You already evaluate this deal');
+                }
+
+                DB::transaction(function () use ($deal, $validatedData) {
+                    $deal->update([
+                        'first_member_evaluation' => $validatedData['evaluation'],
+                    ]);
+
+                    $userWithUpdatedRatingId = $deal['second_member_id'];
+
+                    $this->updateUserRating($userWithUpdatedRatingId, $validatedData['evaluation']);
+                });
+            }
+
+            if ($userId == $deal['second_member_id']) {
+                if ($deal['second_member_evaluation'] != null) {
+                    abort(409, 'You already evaluate this deal');
+                }
+
+                DB::transaction(function () use ($deal, $validatedData) {
+                    $deal->update([
+                        'second_member_evaluation' => $validatedData['evaluation'],
+                    ]);
+
+                    $userWithUpdatedRatingId = $deal['first_member_id'];
+
+                    $this->updateUserRating($userWithUpdatedRatingId, $validatedData['evaluation']);
+                });
+            }
+
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined deal with id: ' . $dealId);
+        }
+    }
+
+    function cancelDeal(Request $request, $dealId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $deal = Deal::findOrFail($dealId);
+
+            if ($userId != $deal['first_member_id'] && $userId != $deal['second_member_id']) {
+                abort(403, 'You dont have permission to cancel this deal');
+            }
+
+            if ($deal['deal_status'] != 'DealWaiting') {
+                abort(409, 'You cannot cancel deal with this status');
+            }
+
+            DB::transaction(function () use ($deal) {
+                $ad = Ad::find($deal['ad_id']);
+
+                $ad->update([
+                    'status' => 'Archived',
+                ]);
+
+                $deal->delete();
+            });
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined deal with id: ' . $dealId);
+        }
+    }
 }
