@@ -365,4 +365,27 @@ class AdController extends Controller
             abort(404, 'Undefined ad with id: ' . $adId);
         }
     }
+
+    function removeFromFavourite(Request $request, $adId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::findOrFail($adId);
+
+            if (!DB::table('favourite_ads')
+                ->where('user_id', $userId)
+                ->where('ad_id', $adId)
+                ->exists()) {
+                abort(409, 'This ad is not in favourites');
+            }
+
+            DB::table('favourite_ads')
+                ->where('user_id', $userId)
+                ->where('ad_id', $adId)
+                ->delete();
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined ad with id: ' . $adId);
+        }
+    }
 }
