@@ -319,10 +319,14 @@ class AdController extends Controller
                 }
             }
 
-            return array_merge(Ad::where('id', $adId)->with('genres')
+            return array_merge(Ad::where('id', $adId)
+                ->with('genres')
                 ->with('user')
                 ->first()
-                ->toArray(), ['isUsersAd' => $isUsersAd]);
+                ->toArray(),
+                ['is_users_ad' => $isUsersAd],
+            ['locations' => User::find($ad['user_id'])->locations()->get()],
+            );
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }
