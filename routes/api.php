@@ -62,7 +62,8 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
 Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group(function () {
     Route::middleware('auth.jwt')->group(function () {
         Route::post('/offer/{adId}', 'offerDeal');
-        Route::delete('/offer/{dealId}', 'cancelDealOffer');
+        Route::delete('/offer/{responseId}', 'cancelDealOffer');
+        Route::delete('/reject/{responseId}', 'rejectDealOffer');
     });
 });
 

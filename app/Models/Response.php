@@ -10,7 +10,7 @@ class Response extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'ad_id', 'proposed_book'];
+    protected $fillable = ['id', 'user_id', 'ad_id', 'proposed_book'];
 
     protected $hidden = ['pivot'];
 

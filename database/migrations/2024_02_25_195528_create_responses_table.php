@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('responses', function (Blueprint $table) {
+            $table->id();
             $table->string('user_id');
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
             $table->unsignedBigInteger('ad_id');
             $table->foreign('ad_id')->references('id')->on('ads')->cascadeOnDelete();
             $table->string('proposed_book')->nullable();
-            $table->primary(['user_id', 'ad_id']);
         });
     }
 

@@ -48,24 +48,39 @@ class DealController extends Controller
         }
     }
 
-    function cancelDealOffer(Request $request, $adId)
+    function cancelDealOffer(Request $request, $responseId)
     {
         try {
-            $ad = Ad::findOrFail($adId);
+            $response = Response::findOrFail($responseId);
 
             $userId = $request['userInfo']['id'];
 
-            if (!Response::where('user_id', $userId)
-                ->where('ad_id', $ad['id'])
-                ->exists()) {
-                abort(400, 'There is not this deal offer');
+            if ($response['user_id'] != $userId) {
+                abort(403, 'You dont have permission to cancel this response');
             }
 
-            Response::where('user_id', $userId)
-                ->where('ad_id', $ad['id'])
-                ->delete();
+            $response->delete();
         } catch (ModelNotFoundException $e) {
-            abort(404, 'Undefined ad with id: ' . $adId);
+            abort(404, 'Undefined response with id: ' . $responseId);
+        }
+    }
+
+    function rejectDealOffer(Request $request, $responseId)
+    {
+        try {
+            $response = Response::findOrFail($responseId);
+
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::find($response['ad_id']);
+
+            if ($ad['user_id'] != $userId) {
+                abort(403, 'You dont have permission to reject this deal');
+            }
+
+            $response->delete();
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined response with id: ' . $responseId);
         }
     }
 }
