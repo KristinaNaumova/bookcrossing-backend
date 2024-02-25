@@ -270,4 +270,55 @@ class DealController extends Controller
             abort(404, 'Undefined deal with id: ' . $dealId);
         }
     }
+
+    function confirmBookTransfer(Request $request, $dealId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $deal = Deal::findOrFail($dealId);
+
+            $validatedData = $request->validate([
+                'code' => 'required|integer|min:6'
+            ]);
+
+            if ($deal['deal_status'] != 'DealWaiting') {
+                abort(400, 'The deal status is not "DealWaiting"');
+            }
+
+            if ($userId != $deal['first_member_id']) {
+                abort(403, 'You dont have permission to confirm transfer');
+            }
+
+            if ($deal['code'] != $validatedData['code']) {
+                abort(400, 'Wrong code');
+            }
+
+            DB::transaction(function () use ($deal) {
+                $ad = Ad::find($deal['ad_id']);
+
+                if ($ad['type'] != 'Rent') {
+                    $deal->update([
+                        'deal_status' => 'Finished',
+                    ]);
+
+                    $ad->update([
+                        'status' => 'Archived',
+                    ]);
+
+                    return;
+                }
+
+                $deal->update([
+                    'deal_status' => 'RefundWaiting',
+                    'refund_waiting_start_time' => date('Y-m-d H:i'),
+                    'refund_waiting_end_time' => date('Y-m-d H:i', strtotime($ad['deadline'] . ' days')),
+                    'code' => random_int(100000, 999999),
+                ]);
+            });
+
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined deal with id: ' . $dealId);
+        }
+    }
 }

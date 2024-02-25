@@ -28,7 +28,7 @@ class AdController extends Controller
         ]);
 
         if (!key_exists('deadline', $validatedData) && $validatedData['type'] == 'Rent') {
-            abort(403, 'You need to set days amount deadline with ad type "Rent"');
+            abort(409, 'You need to set days amount deadline with ad type "Rent"');
         }
 
         DB::transaction(function () use ($userId, $validatedData) {
@@ -146,7 +146,7 @@ class AdController extends Controller
             ]);
 
             if (!key_exists('deadline', $validatedData) && $validatedData['type'] == 'Rent') {
-                abort(403, 'You need to set days amount deadline with ad type "Rent"');
+                abort(409, 'You need to set days amount deadline with ad type "Rent"');
             }
 
             DB::transaction(function () use ($ad, $validatedData) {

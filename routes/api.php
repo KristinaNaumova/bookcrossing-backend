@@ -69,6 +69,7 @@ Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group
         Route::post('/offer/{responseId}/accept', 'acceptDealResponse');
         Route::get('', 'getAllMyDeals');
         Route::get('/{dealId}', 'getConcreteDeal');
+        Route::post('/{dealId}/confirm_book_transfer', 'confirmBookTransfer');
     });
 });
 
