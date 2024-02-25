@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ad;
+use App\Models\Deal;
 use App\Models\Response;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DealController extends Controller
 {
@@ -72,7 +74,7 @@ class DealController extends Controller
         }
     }
 
-    function rejectDealOffer(Request $request, $responseId)
+    function rejectDealResponse(Request $request, $responseId)
     {
         try {
             $response = Response::findOrFail($responseId);
@@ -82,7 +84,7 @@ class DealController extends Controller
             $ad = Ad::find($response['ad_id']);
 
             if ($ad['user_id'] != $userId) {
-                abort(403, 'You dont have permission to reject this deal');
+                abort(403, 'You dont have permission to reject this response');
             }
 
             $response->delete();
@@ -109,5 +111,39 @@ class DealController extends Controller
         $adsId = $user->ads()->pluck('id')->toArray();
 
         return Response::whereIn('ad_id', $adsId)->with('ad')->get();
+    }
+
+    function acceptDealResponse(Request $request, $responseId)
+    {
+        try {
+            $response = Response::findOrFail($responseId);
+
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::find($response['ad_id']);
+
+            if ($ad['user_id'] != $userId) {
+                abort(403, 'You dont have permission to accept this response');
+            }
+
+            DB::transaction(function () use ($ad, $userId, $response) {
+                Response::where('ad_id', $ad['id'])->delete();
+
+                $ad->update([
+                    'status' => 'InDeal',
+                ]);
+
+                Deal::insert([
+                    'first_member_id' => $userId,
+                    'second_member_id' => $response['user_id'],
+                    'ad_id' => $ad['id'],
+                    'deal_status' => 'DealWaiting',
+                    'deal_waiting_start_time' => date('Y-m-d H:i'),
+                    'deal_waiting_end_time' => date('Y-m-d H:i', strtotime('7 days')),
+                ]);
+            });
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined response with id: ' . $responseId);
+        }
     }
 }
