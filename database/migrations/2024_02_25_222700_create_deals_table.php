@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('deals', function (Blueprint $table) {
             $table->id();
+            $table->string('proposed_book')->nullable();
             $table->enum('deal_status', ['DealWaiting','RefundWaiting', 'Finished']);
             $table->unsignedBigInteger('ad_id');
             $table->foreign('ad_id')->references('id')->on('ads')->cascadeOnDelete();

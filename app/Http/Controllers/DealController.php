@@ -127,6 +127,8 @@ class DealController extends Controller
             }
 
             DB::transaction(function () use ($ad, $userId, $response) {
+                $proposedBook = Response::where('ad_id', $ad['id'])->first()['proposed_book'] ?? null;
+
                 Response::where('ad_id', $ad['id'])->delete();
 
                 $ad->update([
@@ -140,6 +142,8 @@ class DealController extends Controller
                     'deal_status' => 'DealWaiting',
                     'deal_waiting_start_time' => date('Y-m-d H:i'),
                     'deal_waiting_end_time' => date('Y-m-d H:i', strtotime('7 days')),
+                    'proposed_book' => $proposedBook,
+                    'code' => random_int(100000, 999999),
                 ]);
             });
         } catch (ModelNotFoundException $e) {
@@ -200,5 +204,70 @@ class DealController extends Controller
         }
 
         return $result;
+    }
+
+    function getConcreteDeal(Request $request, $dealId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $deal = Deal::findOrFail($dealId);
+
+            if ($deal['deal_status'] == 'Finished') {
+                abort(409, 'This deal is finished. Yoy cannot get full information');
+            }
+
+            if ($deal['first_member_id'] != $userId && $deal['second_member_id'] != $userId) {
+                abort(403, 'You dont have permission to get this deal');
+            }
+
+            $isUserGiver = false;
+
+            if ($userId == $deal['first_member_id']) {
+                $isUserGiver = true;
+            }
+
+            $ad = Ad::find($deal['ad_id']);
+
+            if ($ad['type'] == 'Exchange') {
+                $isUserGiver = true;
+            }
+
+            $anotherUserId = $this->getAnotherUserId($userId, $deal['first_member_id'], $deal['second_member_id']);
+            $anotherUser = User::find($anotherUserId);
+
+            $result = [
+                'id' => $deal['id'],
+                'deal_status' => $deal['deal_status'],
+                'first_member_id' => $deal['first_member_id'],
+                'second_member_id' => $deal['second_member_id'],
+                'deal_waiting_start_time' => $deal['deal_waiting_start_time'],
+                'deal_waiting_end_time' => $deal['deal_waiting_end_time'],
+                'refund_waiting_start_time' => $deal['refund_waiting_start_time'],
+                'refund_waiting_end_time' => $deal['refund_waiting_end_time'],
+                'another_user_id' => $anotherUserId,
+                'another_user_name' => $anotherUser['name'],
+                'another_user_contacts' => $anotherUser->contacts()->get(),
+                'ad' => $ad,
+            ];
+
+            if ($ad['type'] = 'Exchange') {
+                $result = array_merge($result, ['proposed_book' => $deal['proposed_book']]);
+            }
+
+            if ($deal['deal_status'] == 'DealWaiting') {
+                if ($userId == $deal['second_member_id']) {
+                    $result = array_merge($result, ['code' => $deal['code']]);
+                }
+            } else {
+                if ($userId == $deal['first_member_id']) {
+                    $result = array_merge($result, ['code' => $deal['code']]);
+                }
+            }
+
+            return $result;
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined deal with id: ' . $dealId);
+        }
     }
 }
