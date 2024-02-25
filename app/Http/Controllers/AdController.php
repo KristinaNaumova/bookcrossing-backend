@@ -243,10 +243,10 @@ class AdController extends Controller
             'pagesCount' => $pagesCount,
             'currentPageNumber' => $currentPage,
         ];
-         return [
-             'ads' => $ads->with('genres')->with('user')->get(),
-             'pagination' => $pagination,
-         ];
+        return [
+            'ads' => $ads->with('genres')->with('user')->get(),
+            'pagination' => $pagination,
+        ];
     }
 
     function searchAds(Request $request, $word)
@@ -293,5 +293,31 @@ class AdController extends Controller
             'ads' => $ads->with('genres')->with('user')->get(),
             'pagination' => $pagination,
         ];
+    }
+
+    function getConcreteAd(Request $request, $adId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::findOrFail($adId);
+
+            $isUsersAd = true;
+
+            if ($ad['user_id'] != $userId) {
+                $isUsersAd = false;
+
+                if ($ad['status'] != 'Active') {
+                    abort(403, 'You dont have permission to get this ad');
+                }
+            }
+
+            return array_merge(Ad::where('id', $adId)->with('genres')
+                ->with('user')
+                ->first()
+                ->toArray(), ['isUsersAd' => $isUsersAd]);
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined ad with id: ' . $adId);
+        }
     }
 }
