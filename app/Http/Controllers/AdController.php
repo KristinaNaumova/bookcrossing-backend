@@ -320,4 +320,18 @@ class AdController extends Controller
             abort(404, 'Undefined ad with id: ' . $adId);
         }
     }
+
+    function getAllFavouriteAds(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        $ads = Ad::whereIn('id', DB::table('favourite_ads')
+            ->where('user_id', $userId)->pluck('ad_id')
+            ->toArray())
+            ->with('genres')
+            ->with('user')
+            ->get();
+
+        return $ads;
+    }
 }
