@@ -83,7 +83,29 @@ class AdController extends Controller
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }
+    }
 
+    function publishAdFromArchive(Request $request, $adId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::findOrFail($adId);
+
+            if ($ad['user_id'] != $userId) {
+                abort(403, 'This ad is not available to this user');
+            }
+
+            if ($ad['status'] !== 'Archived') {
+                abort(409, 'This ad is not in archive');
+            }
+
+            $ad->update([
+                'status' => 'Active',
+            ]);
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined ad with id: ' . $adId);
+        }
 
 
     }

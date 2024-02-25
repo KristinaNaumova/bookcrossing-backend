@@ -48,6 +48,7 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
         Route::get('/my', 'getMyAds');
         Route::get('/my/archived', 'getMyArchiveAds');
         Route::post('/{adId}/archive', 'moveAdToArchive');
+        Route::post('/{adId}/publish', 'publishAdFromArchive');
     });
 });
 
