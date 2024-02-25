@@ -49,4 +49,11 @@ class AdController extends Controller
 
         return Ad::where('user_id', $userId)->where('status', 'Active')->orWhere('status', 'inDeal')->get();
     }
+
+    function getMyArchiveAds(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        return Ad::where('user_id', $userId)->where('status', 'Archived')->get();
+    }
 }

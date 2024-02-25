@@ -46,6 +46,7 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
     Route::middleware('auth.jwt')->group(function () {
         Route::post('', 'createAd');
         Route::get('/my', 'getMyAds');
+        Route::get('/my/archived', 'getMyArchiveAds');
     });
 });
 
