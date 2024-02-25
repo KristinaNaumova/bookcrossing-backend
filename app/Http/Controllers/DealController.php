@@ -47,4 +47,25 @@ class DealController extends Controller
             abort(404, 'Undefined ad with id: ' . $adId);
         }
     }
+
+    function cancelDealOffer(Request $request, $adId)
+    {
+        try {
+            $ad = Ad::findOrFail($adId);
+
+            $userId = $request['userInfo']['id'];
+
+            if (!Response::where('user_id', $userId)
+                ->where('ad_id', $ad['id'])
+                ->exists()) {
+                abort(400, 'There is not this deal offer');
+            }
+
+            Response::where('user_id', $userId)
+                ->where('ad_id', $ad['id'])
+                ->delete();
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined ad with id: ' . $adId);
+        }
+    }
 }
