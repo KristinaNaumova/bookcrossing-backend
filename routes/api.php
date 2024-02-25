@@ -71,6 +71,7 @@ Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group
         Route::get('/{dealId}', 'getConcreteDeal');
         Route::post('/{dealId}/confirm_book_transfer', 'confirmBookTransfer');
         Route::post('/{dealId}/confirm_deal_ending', 'confirmDealEnding');
+        Route::post('/{dealId}/extend_deal_period', 'extendDealPeriod');
     });
 });
 

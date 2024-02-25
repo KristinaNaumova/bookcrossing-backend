@@ -6,6 +6,7 @@ use App\Models\Ad;
 use App\Models\Deal;
 use App\Models\Response;
 use App\Models\User;
+use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -357,6 +358,38 @@ class DealController extends Controller
                 ]);
             });
 
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined deal with id: ' . $dealId);
+        }
+    }
+
+    function extendDealPeriod(Request $request, $dealId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $deal = Deal::findOrFail($dealId);
+
+            $validatedData = $request->validate([
+               'added_days' => 'required|min:1|integer'
+            ]);
+
+            if ($userId != $deal['first_member_id']) {
+                abort(403, 'You dont have permission to extend deal period');
+            }
+
+            if ($deal['deal_status'] != 'RefundWaiting') {
+                abort(400, 'The deal status is not "RefundWaiting"');
+            }
+
+            $date = new DateTime($deal['refund_waiting_end_time']);
+
+            $date->modify('+' . $validatedData['added_days'] . ' days');
+            $newDeadlineDate = $date->format('Y-m-d H:i:s');
+
+            $deal->update([
+                'refund_waiting_end_time' => $newDeadlineDate,
+            ]);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined deal with id: ' . $dealId);
         }
