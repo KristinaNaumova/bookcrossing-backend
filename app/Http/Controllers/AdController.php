@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ad;
+use App\Models\Response;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -86,6 +87,8 @@ class AdController extends Controller
                 ]);
 
                 DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
+
+                Response::where('ad_id', $ad['id'])->delete();
             });
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);

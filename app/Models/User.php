@@ -44,4 +44,9 @@ class User extends Model
     {
         return $this->hasMany(Ad::class);
     }
+
+    public function responses(): HasMany
+    {
+        return $this->hasMany(Response::class);
+    }
 }

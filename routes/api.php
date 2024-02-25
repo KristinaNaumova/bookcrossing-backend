@@ -59,6 +59,12 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
     });
 });
 
+Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group(function () {
+    Route::middleware('auth.jwt')->group(function () {
+        Route::post('/offer/{adId}', 'offerDeal');
+    });
+});
+
 Route::fallback(function () {
     return response(['message' => 'Undefined route'], 404);
 });
