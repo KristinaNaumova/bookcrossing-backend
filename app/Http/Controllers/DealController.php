@@ -146,4 +146,27 @@ class DealController extends Controller
             abort(404, 'Undefined response with id: ' . $responseId);
         }
     }
+
+    function getAllMyDeals(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        $validatedData = $request->validate([
+            'status' => 'required|in:InProcess,Finished',
+        ]);
+
+        $deals = Deal::query();
+
+        if ($validatedData['status'] == 'InProcess') {
+            $deals->whereIn('deal_status', ['DealWaiting', 'RefundWaiting']);
+        } else {
+            $deals->where('deal_status', 'Finished');
+        }
+
+        $deals->where('first_member_id', $userId)
+            ->orWhere('second_member_id', $userId)
+            ->select('id', 'deal_status', 'deal_waiting_start_time', 'ad_id');
+
+        return $deals->with('ad')->get();
+    }
 }

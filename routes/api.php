@@ -67,6 +67,7 @@ Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group
         Route::get('/my/response', 'getMyResponses'); // отклики которые ОТПРАВИЛ пользователь
         Route::get('/request', 'getRequests'); // запросы которые ОТПРАВИЛИ пользователю
         Route::post('/offer/{responseId}/accept', 'acceptDealResponse');
+        Route::get('', 'getAllMyDeals');
     });
 });
 
