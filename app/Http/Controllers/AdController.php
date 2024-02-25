@@ -84,7 +84,7 @@ class AdController extends Controller
                     'status' => 'Archived',
                     'published_at' => null,
                 ]);
-                
+
                 DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
             });
         } catch (ModelNotFoundException $e) {
@@ -337,5 +337,32 @@ class AdController extends Controller
             ->get();
 
         return $ads;
+    }
+
+    function addAdToFavourite(Request $request, $adId)
+    {
+        try {
+            $userId = $request['userInfo']['id'];
+
+            $ad = Ad::findOrFail($adId);
+
+            if ($ad['status'] != 'Active') {
+                abort(409, 'You cannot add ad with this status');
+            }
+
+            if (DB::table('favourite_ads')
+                ->where('user_id', $userId)
+                ->where('ad_id', $adId)
+                ->exists()) {
+                abort(409, 'This ad is already in favourites');
+            }
+
+            DB::table('favourite_ads')->insert([
+                'ad_id' => $ad['id'],
+                'user_id' => $userId,
+            ]);
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Undefined ad with id: ' . $adId);
+        }
     }
 }

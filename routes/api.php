@@ -53,6 +53,7 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
         Route::get('', 'getAllAds');
         Route::get('/search/{word}', 'searchAds');
         Route::get('/favourite', 'getAllFavouriteAds');
+        Route::post('/{adId}/favourite', 'addAdToFavourite');
         Route::get('/{adId}', 'getConcreteAd');
     });
 });
