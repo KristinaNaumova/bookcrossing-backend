@@ -79,10 +79,14 @@ class AdController extends Controller
                 abort(409, 'This ad is already in archive');
             }
 
-            $ad->update([
-                'status' => 'Archived',
-                'published_at' => null,
-            ]);
+            DB::transaction(function () use ($ad) {
+                $ad->update([
+                    'status' => 'Archived',
+                    'published_at' => null,
+                ]);
+                
+                DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
+            });
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }
