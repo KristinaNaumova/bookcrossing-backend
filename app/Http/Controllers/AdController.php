@@ -248,4 +248,50 @@ class AdController extends Controller
              'pagination' => $pagination,
          ];
     }
+
+    function searchAds(Request $request, $word)
+    {
+        $validatedData = $request->validate([
+            'page' => 'nullable|integer|min:0'
+        ]);
+
+        $ads = Ad::where(function ($query) use ($word) {
+            $query->where('book_name', 'LIKE', '%' . $word . '%')
+                ->orWhere('book_author', 'LIKE', '%' . $word . '%');
+        });
+
+        $adsOnPage = 15;
+
+        $adsCount = $ads->count();
+
+        $pagesCount = ceil($adsCount / 15);
+
+        if ($pagesCount == 0) {
+            $pagesCount = 1;
+        }
+
+        if (key_exists('page', $validatedData)) {
+            $currentPage = $validatedData['page'];
+        } else {
+            $currentPage = 1;
+        }
+
+        if ($currentPage > $pagesCount) {
+            abort(409, 'Incorrect page');
+        }
+
+        $offset = ($adsOnPage * ($currentPage - 1));
+
+        $ads->offset($offset)->limit($adsOnPage);
+
+        $pagination = [
+            'size' => $adsOnPage,
+            'pagesCount' => $pagesCount,
+            'currentPageNumber' => $currentPage,
+        ];
+        return [
+            'ads' => $ads->with('genres')->with('user')->get(),
+            'pagination' => $pagination,
+        ];
+    }
 }
