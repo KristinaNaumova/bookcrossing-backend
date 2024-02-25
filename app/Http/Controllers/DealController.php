@@ -147,6 +147,15 @@ class DealController extends Controller
         }
     }
 
+    private function getAnotherUserId($userId, $firstUserId, $secondUserId)
+    {
+        if ($userId == $firstUserId) {
+            return $secondUserId;
+        } else {
+            return $firstUserId;
+        }
+    }
+
     function getAllMyDeals(Request $request)
     {
         $userId = $request['userInfo']['id'];
@@ -164,9 +173,32 @@ class DealController extends Controller
         }
 
         $deals->where('first_member_id', $userId)
-            ->orWhere('second_member_id', $userId)
-            ->select('id', 'deal_status', 'deal_waiting_start_time', 'ad_id');
+            ->orWhere('second_member_id', $userId);
 
-        return $deals->with('ad')->get();
+        $dealsArray = $deals->with('ad')->get();
+        $result = [];
+
+        foreach ($dealsArray as $deal) {
+            $anotherUserId = $this->getAnotherUserId($userId, $deal['first_member_id'], $deal['second_member_id']);
+            $anotherUserName = User::find($anotherUserId)['name'];
+
+            if ($userId == $deal['first_member_id']) {
+                $userEvaluation = $deal['first_member_evaluation'] ?? null;
+            } else {
+                $userEvaluation = $deal['second_member_evaluation'] ?? null;
+            }
+
+            $result[] = [
+                'id' => $deal['id'],
+                'deal_status' => $deal['deal_status'],
+                'deal_waiting_start_time' => $deal['deal_waiting_start_time'],
+                'ad' => $deal['ad'],
+                'another_user_id' => $anotherUserId,
+                'another_user_name' => $anotherUserName,
+                'user_evaluation' => $userEvaluation,
+            ];
+        }
+
+        return $result;
     }
 }
