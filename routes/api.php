@@ -65,6 +65,7 @@ Route::prefix('/deal')->controller('App\Http\Controllers\DealController')->group
         Route::delete('/offer/{responseId}', 'cancelDealOffer');
         Route::post('/reject/{responseId}', 'rejectDealOffer');
         Route::get('/my/response', 'getMyResponses'); // отклики которые ОТПРАВИЛ пользователь
+        Route::get('/request', 'getRequests'); // запросы которые ОТПРАВИЛИ пользователю
     });
 });
 

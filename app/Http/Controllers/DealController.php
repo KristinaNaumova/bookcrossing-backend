@@ -99,4 +99,15 @@ class DealController extends Controller
 
         return $user->responses()->with('ad')->get();
     }
+
+    function getRequests(Request $request)
+    {
+        $userId = $request['userInfo']['id'];
+
+        $user = User::find($userId);
+
+        $adsId = $user->ads()->pluck('id')->toArray();
+
+        return Response::whereIn('ad_id', $adsId)->with('ad')->get();
+    }
 }
