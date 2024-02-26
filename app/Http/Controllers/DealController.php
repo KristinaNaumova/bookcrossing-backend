@@ -6,6 +6,7 @@ use App\Models\Ad;
 use App\Models\Deal;
 use App\Models\Response;
 use App\Models\User;
+use App\Services\NotificationService;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -53,6 +54,10 @@ class DealController extends Controller
                 'ad_id' => $ad['id'],
                 'proposed_book' => $proposedBook,
             ]);
+
+            NotificationService::create($ad['user_id'], 'Вам пришло новое предложение по книге: '
+                . $ad['book_name'] . ', ' . $ad['book_author']);
+
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }
@@ -87,6 +92,9 @@ class DealController extends Controller
             if ($ad['user_id'] != $userId) {
                 abort(403, 'You dont have permission to reject this response');
             }
+
+            NotificationService::create($response['user_id'], 'Ваш отклик на сделку отклонили. Книга: '
+                . $ad['book_name'] . ', ' . $ad['book_author']);
 
             $response->delete();
         } catch (ModelNotFoundException $e) {
@@ -152,6 +160,9 @@ class DealController extends Controller
                     'deadline' => $ad['deadline'],
                     'type' => $ad['type'],
                 ]);
+
+                NotificationService::create($response['user_id'], 'Сделка одобрена для книги: '
+                    . $ad['book_name'] . ', ' . $ad['book_author']);
             });
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined response with id: ' . $responseId);
@@ -495,7 +506,7 @@ class DealController extends Controller
                 abort(409, 'You cannot cancel deal with this status');
             }
 
-            DB::transaction(function () use ($deal) {
+            DB::transaction(function () use ($deal, $userId) {
                 $ad = Ad::find($deal['ad_id']);
 
                 $ad->update([
@@ -503,6 +514,10 @@ class DealController extends Controller
                 ]);
 
                 $deal->delete();
+
+                $anotherUserId = $this->getAnotherUserId($userId, $deal['first_member_id'], $deal['second_member_id']);
+                NotificationService::create($anotherUserId, 'Сделка была отменена другим пользователем для книги: '
+                    . $ad['book_name'] . ', ' . $ad['book_author']);
             });
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined deal with id: ' . $dealId);

@@ -27,6 +27,11 @@ class DealControllerService
                     'status' => 'Active',
                 ]);
 
+                NotificationService::create($dealFromDB['first_member_id'], 'Сделка была автоматически отклонена - книга не была передана. Книга: '
+                    . $ad['book_name'] . ', ' . $ad['book_author']);
+
+                NotificationService::create($dealFromDB['second_member_id'], 'Сделка была автоматически отклонена - книга не была передана. Книга: '
+                    . $ad['book_name'] . ', ' . $ad['book_author']);
                 $dealFromDB->delete();
             });
         }
