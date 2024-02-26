@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name')->nullable();
             $table->string('faculty')->nullable();
             $table->double('rating')->nullable();
+            $table->integer('appraisers_number')->nullable()->default(0);
             $table->boolean('is_banned')->default(false);
             $table->text('access_token')->nullable();
             $table->text('refresh_token')->nullable();

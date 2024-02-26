@@ -133,7 +133,7 @@ class DealController extends Controller
                 Response::where('ad_id', $ad['id'])->delete();
 
                 DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
-                
+
                 $ad->update([
                     'status' => 'InDeal',
                 ]);
@@ -399,7 +399,17 @@ class DealController extends Controller
 
     private function updateUserRating($userId, $evaluation)
     {
-        //обновление рейтинга пользователя
+        $user = User::find($userId);
+        $newAppraisersNumber = $user['appraisers_number'] + 1;
+
+        $newRating = ((($user['rating'] ?? 0) * $user['appraisers_number']) + $evaluation) / $newAppraisersNumber;
+
+        $newRating = number_format((float)$newRating, 2, '.', '');
+
+        $user->update([
+            'rating' => $newRating,
+            'appraisers_number' => $newAppraisersNumber,
+        ]);
     }
 
     function evaluateDeal(Request $request, $dealId)

@@ -12,9 +12,9 @@ class User extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'id', 'faculty', 'refresh_token', 'access_token', 'rating', 'is_banned'];
+    protected $fillable = ['name', 'id', 'faculty', 'refresh_token', 'access_token', 'rating', 'is_banned', 'appraisers_number'];
 
-    protected $hidden = ['updated_at', 'created_at', 'refresh_token', 'access_token', 'pivot'];
+    protected $hidden = ['updated_at', 'created_at', 'refresh_token', 'access_token', 'pivot', 'appraisers_number'];
 
     public $incrementing = false;
 
