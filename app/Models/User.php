@@ -45,6 +45,11 @@ class User extends Model
         return $this->hasMany(Ad::class);
     }
 
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
     public function responses(): HasMany
     {
         return $this->hasMany(Response::class);

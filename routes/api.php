@@ -42,6 +42,13 @@ Route::prefix('/genre')->controller('App\Http\Controllers\GenreController')->gro
     });
 });
 
+Route::prefix('/notification')->controller('App\Http\Controllers\NotificationController')->group(function () {
+    Route::middleware('auth.jwt')->group(function () {
+        Route::get('', 'getAllNotifications');
+        Route::get('/new/count', 'getNewNotificationsCount');
+    });
+});
+
 Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(function () {
     Route::middleware('auth.jwt')->group(function () {
         Route::post('', 'createAd');
