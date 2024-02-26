@@ -22,7 +22,11 @@ class Deal extends Model
         'first_member_evaluation',
         'second_member_evaluation',
         'code',
-        'proposed_book'
+        'proposed_book',
+        'book_name',
+        'book_author',
+        'type',
+        'deadline'
         ];
 
     public function ad(): BelongsTo

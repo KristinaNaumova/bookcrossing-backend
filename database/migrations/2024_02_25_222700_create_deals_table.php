@@ -27,6 +27,10 @@ return new class extends Migration
             $table->dateTime('refund_waiting_end_time')->nullable();
             $table->integer('first_member_evaluation')->nullable();
             $table->integer('second_member_evaluation')->nullable();
+            $table->string('book_name');
+            $table->string('book_author');
+            $table->enum('type', ['Exchange', 'Gift', 'Rent']);
+            $table->integer('deadline')->nullable();
             $table->string('code')->nullable();
             $table->timestamps();
         });

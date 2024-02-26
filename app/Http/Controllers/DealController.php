@@ -147,6 +147,10 @@ class DealController extends Controller
                     'deal_waiting_end_time' => date('Y-m-d H:i', strtotime('7 days')),
                     'proposed_book' => $proposedBook,
                     'code' => random_int(100000, 999999),
+                    'book_name' => $ad['book_name'],
+                    'book_author' => $ad['book_author'],
+                    'deadline' => $ad['deadline'],
+                    'type' => $ad['type'],
                 ]);
             });
         } catch (ModelNotFoundException $e) {
@@ -182,7 +186,7 @@ class DealController extends Controller
         $deals->where('first_member_id', $userId)
             ->orWhere('second_member_id', $userId);
 
-        $dealsArray = $deals->with('ad')->get();
+        $dealsArray = $deals->get();
         $result = [];
 
         foreach ($dealsArray as $deal) {
@@ -199,7 +203,12 @@ class DealController extends Controller
                 'id' => $deal['id'],
                 'deal_status' => $deal['deal_status'],
                 'deal_waiting_start_time' => $deal['deal_waiting_start_time'],
-                'ad' => $deal['ad'],
+                'ad' => [
+                    'book_name' => $deal['book_name'],
+                    'book_author' => $deal['book_author'],
+                    'type' => $deal['type'],
+                    'deadline' => $deal['deadline'],
+                ],
                 'another_user_id' => $anotherUserId,
                 'another_user_name' => $anotherUserName,
                 'user_evaluation' => $userEvaluation,
@@ -224,18 +233,6 @@ class DealController extends Controller
                 abort(403, 'You dont have permission to get this deal');
             }
 
-            $isUserGiver = false;
-
-            if ($userId == $deal['first_member_id']) {
-                $isUserGiver = true;
-            }
-
-            $ad = Ad::find($deal['ad_id']);
-
-            if ($ad['type'] == 'Exchange') {
-                $isUserGiver = true;
-            }
-
             $anotherUserId = $this->getAnotherUserId($userId, $deal['first_member_id'], $deal['second_member_id']);
             $anotherUser = User::find($anotherUserId);
 
@@ -251,22 +248,37 @@ class DealController extends Controller
                 'another_user_id' => $anotherUserId,
                 'another_user_name' => $anotherUser['name'],
                 'another_user_contacts' => $anotherUser->contacts()->get(),
-                'ad' => $ad,
+                'ad' => [
+                    'book_name' => $deal['book_name'],
+                    'book_author' => $deal['book_author'],
+                    'type' => $deal['type'],
+                    'deadline' => $deal['deadline'] ?? null,
+                ],
             ];
 
-            if ($ad['type'] = 'Exchange') {
+            if ($deal['type'] = 'Exchange') {
                 $result = array_merge($result, ['proposed_book' => $deal['proposed_book']]);
             }
 
             if ($deal['deal_status'] == 'DealWaiting') {
                 if ($userId == $deal['second_member_id']) {
                     $result = array_merge($result, ['code' => $deal['code']]);
+
+                    $userCurrentRole = 'Giver';
+                } else {
+                    $userCurrentRole = 'Getter';
                 }
             } else {
                 if ($userId == $deal['first_member_id']) {
                     $result = array_merge($result, ['code' => $deal['code']]);
+
+                    $userCurrentRole = 'Giver';
+                } else {
+                    $userCurrentRole = 'Getter';
                 }
             }
+
+            $result = array_merge($result, ['user_current_role' => $userCurrentRole]);
 
             return $result;
         } catch (ModelNotFoundException $e) {
