@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Ad;
+use App\Modules\Ad\Models\Ad;
 use App\Models\Response;
 use App\Models\User;
+use App\Modules\Ad\DTO\AdCreateDTO;
+use App\Modules\Ad\Requests\AdCreateRequest;
+use App\Modules\Ad\Services\AdService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,39 +15,26 @@ use Illuminate\Validation\Rule;
 
 class AdController extends Controller
 {
-    function createAd(Request $request)
+    public function __construct(
+        public AdService $adService,
+    )
     {
-        $userId = $request['userInfo']['id'];
+    }
 
-        $validatedData = $request->validate([
-            'book_name' => 'required|string',
-            'book_author' => 'required|string',
-            'description' => 'nullable|string',
-            'comment' => 'nullable|string',
-            'type' => 'in:Gift,Exchange,Rent',
-            'genres' => 'required|array',
-            'genres.*' => Rule::exists('genres', 'id'),
-            'deadline' => 'nullable|integer',
-        ]);
+    function createAd(AdCreateRequest $request)
+    {
+        $dto = new AdCreateDTO(
+            $request->userInfo,
+            $request->book_name,
+            $request->book_author,
+            $request->description,
+            $request->comment,
+            $request->type,
+            $request->genres,
+            $request->deadline,
+        );
 
-        if (!key_exists('deadline', $validatedData) && $validatedData['type'] == 'Rent') {
-            abort(409, 'You need to set days amount deadline with ad type "Rent"');
-        }
-
-        DB::transaction(function () use ($userId, $validatedData) {
-            $ad = Ad::create([
-                'user_id' => $userId,
-                'book_name' => $validatedData['book_name'],
-                'book_author' => $validatedData['book_author'],
-                'description' => $validatedData['description'],
-                'comment' => $validatedData['comment'],
-                'type' => $validatedData['type'],
-                'deadline' => $validatedData['deadline'] ?? null,
-                'published_at' => date('Y-m-d H:i'),
-            ]);
-
-            $ad->genres()->attach($validatedData['genres']);;
-        });
+        $this->adService->createAd($dto);
     }
 
     function getMyAds(Request $request)
