@@ -54,32 +54,7 @@ class AdController extends Controller
     function moveAdToArchive(Request $request, $adId)
     {
         try {
-            $userId = $request['userInfo']['id'];
-
-            $ad = Ad::findOrFail($adId);
-
-            if ($ad['user_id'] != $userId) {
-                abort(403, 'This ad is not available to this user');
-            }
-
-            if ($ad['status'] == 'InDeal') {
-                abort(403, 'You cannot move ad in deal to archive');
-            }
-
-            if ($ad['status'] == 'Archived') {
-                abort(409, 'This ad is already in archive');
-            }
-
-            DB::transaction(function () use ($ad) {
-                $ad->update([
-                    'status' => 'Archived',
-                    'published_at' => null,
-                ]);
-
-                DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
-
-                Response::where('ad_id', $ad['id'])->delete();
-            });
+           $this->adService->moveAdToArchive($request['UserInfo']['id'], $adId);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }
