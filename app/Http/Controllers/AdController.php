@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Modules\Ad\DTO\AdUpdateDTO;
 use App\Modules\Ad\Models\Ad;
 use App\Models\Response;
 use App\Models\User;
@@ -87,46 +88,19 @@ class AdController extends Controller
     function updateAd(Request $request, $adId)
     {
         try {
-            $userId = $request['userInfo']['id'];
+            $dto = new AdUpdateDTO(
+                $request->userInfo,
+                $adId,
+                $request->book_name,
+                $request->book_author,
+                $request->description,
+                $request->comment,
+                $request->type,
+                $request->genres,
+                $request->deadline,
+            );
 
-            $ad = Ad::findOrFail($adId);
-
-            if ($ad['user_id'] != $userId) {
-                abort(403, 'This ad is not available to this user');
-            }
-
-            if ($ad['status'] == 'InDeal') {
-                abort(403, 'You cannot move ad in deal to archive');
-            }
-
-            $validatedData = $request->validate([
-                'book_name' => 'required|string',
-                'book_author' => 'required|string',
-                'description' => 'nullable|string',
-                'comment' => 'nullable|string',
-                'type' => 'in:Gift,Exchange,Rent',
-                'genres' => 'required|array',
-                'genres.*' => Rule::exists('genres', 'id'),
-                'deadline' => 'nullable|integer',
-            ]);
-
-            if (!key_exists('deadline', $validatedData) && $validatedData['type'] == 'Rent') {
-                abort(409, 'You need to set days amount deadline with ad type "Rent"');
-            }
-
-            DB::transaction(function () use ($ad, $validatedData) {
-                $ad->update([
-                    'book_name' => $validatedData['book_name'],
-                    'book_author' => $validatedData['book_author'],
-                    'description' => $validatedData['description'],
-                    'comment' => $validatedData['comment'],
-                    'type' => $validatedData['type'],
-                    'deadline' => $validatedData['deadline'] ?? null,
-                ]);
-
-                $ad->genres()->detach();
-                $ad->genres()->attach($validatedData['genres']);;
-            });
+            $this->adService->updateAd($dto);
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined ad with id: ' . $adId);
         }

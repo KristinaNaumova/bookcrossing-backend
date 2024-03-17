@@ -4,6 +4,7 @@ namespace App\Modules\Ad\Services;
 
 use App\Models\Response;
 use App\Modules\Ad\DTO\AdCreateDTO;
+use App\Modules\Ad\DTO\AdUpdateDTO;
 use App\Modules\Ad\Models\Ad;
 use Illuminate\Support\Facades\DB;
 
@@ -59,6 +60,39 @@ class AdService
             DB::table('favourite_ads')->where('ad_id', $ad['id'])->delete();
 
             Response::where('ad_id', $ad['id'])->delete();
+        });
+    }
+
+    public function updateAd(AdUpdateDTO $dto)
+    {
+        $userId = $dto->userInfo['id'];
+
+        $ad = Ad::findOrFail($dto->adId);
+
+        if ($ad['user_id'] != $userId) {
+            abort(403, 'This ad is not available to this user');
+        }
+
+        if ($ad['status'] == 'InDeal') {
+            abort(403, 'You cannot move ad in deal to archive');
+        }
+
+        if (!$dto->deadline && $dto->type == 'Rent') {
+            abort(409, 'You need to set days amount deadline with ad type "Rent"');
+        }
+
+        DB::transaction(function () use ($ad, $dto) {
+            $ad->update([
+                'book_name' => $dto->bookName,
+                'book_author' => $dto->bookAuthor,
+                'description' => $dto->description,
+                'comment' => $dto->comment,
+                'type' => $dto->type,
+                'deadline' => $dto->deadline,
+            ]);
+
+            $ad->genres()->detach();
+            $ad->genres()->attach($dto->genres);;
         });
     }
 }
