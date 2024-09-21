@@ -18,7 +18,7 @@ class UserController extends Controller
             $userId = $request['userInfo']['id'];
             $user = User::findOrFail($userId);
 
-            echo $user->with('locations')->with('contacts')->first();
+            echo $user->with('locations')->with('contacts')->with('genres')->where('id', $userId)->first();
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined user with id: ' . $userId);
         }
@@ -28,7 +28,7 @@ class UserController extends Controller
         try {
             $user = User::findOrFail($userId);
 
-            echo $user->with('locations')->first();
+            echo $user->with('locations')->where('id', $userId)->first();
         } catch (ModelNotFoundException $e) {
             abort(404, 'Undefined user with id: ' . $userId);
         }

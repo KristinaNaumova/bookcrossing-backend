@@ -11,6 +11,7 @@ use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class DealController extends Controller
 {
@@ -108,7 +109,7 @@ class DealController extends Controller
 
         $user = User::find($userId);
 
-        return $user->responses()->with('ad')->get();
+        return $user->responses()->with('ad')->with('ad.responses')->get();
     }
 
     function getRequests(Request $request)
@@ -119,7 +120,7 @@ class DealController extends Controller
 
         $adsId = $user->ads()->pluck('id')->toArray();
 
-        return Response::whereIn('ad_id', $adsId)->with('ad')->get();
+        return Response::whereIn('ad_id', $adsId)->with('ad')->with('ad.responses')->get();
     }
 
     function acceptDealResponse(Request $request, $responseId)
@@ -188,13 +189,15 @@ class DealController extends Controller
 
         $deals = Deal::query();
 
+        Log::info($validatedData['status']);
+
         if ($validatedData['status'] == 'InProcess') {
             $deals->whereIn('deal_status', ['DealWaiting', 'RefundWaiting']);
         } else {
             $deals->where('deal_status', 'Finished');
         }
 
-        $deals->where('first_member_id', $userId)
+        $deals->where('first_member_id', $userId)->orderBy('deal_waiting_start_time', 'desc')
             ->orWhere('second_member_id', $userId);
 
         $dealsArray = $deals->get();
@@ -338,7 +341,7 @@ class DealController extends Controller
                 $deal->update([
                     'deal_status' => 'RefundWaiting',
                     'refund_waiting_start_time' => date('Y-m-d H:i'),
-                    'refund_waiting_end_time' => date('Y-m-d H:i', strtotime($ad['deadline'] . ' days')),
+                    'refund_waiting_end_time' => $ad['deadline'],
                     'code' => random_int(100000, 999999),
                 ]);
             });

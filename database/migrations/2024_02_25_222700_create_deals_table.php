@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('book_name');
             $table->string('book_author');
             $table->enum('type', ['Exchange', 'Gift', 'Rent']);
-            $table->integer('deadline')->nullable();
+            $table->dateTime('deadline')->nullable();
             $table->string('code')->nullable();
             $table->timestamps();
         });

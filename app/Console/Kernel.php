@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Services\AdControllerService;
 use App\Services\DealControllerService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -15,6 +16,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->call(function () {
             (new DealControllerService())->checkWaitingDeals();
+        })->everyMinute();
+
+        $schedule->call(function () {
+            (new AdControllerService())->checkAdDeadline();
         })->everyMinute();
 
         $schedule->call(function () {

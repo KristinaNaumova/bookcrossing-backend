@@ -59,8 +59,9 @@ Route::prefix('/ad')->controller('App\Http\Controllers\AdController')->group(fun
         Route::put('/{adId}', 'updateAd');
         Route::get('', 'getAllAds');
         Route::get('/search/{word}', 'searchAds');
-        Route::get('/favourite', 'getAllFavouriteAds');
+        Route::post('/favourites', 'getAllFavouriteAds');
         Route::post('/{adId}/favourite', 'addAdToFavourite');
+        Route::get('/{adId}/favourite', 'getFavoritesCard');
         Route::delete('/{adId}/favourite', 'removeFromFavourite');
         Route::get('/{adId}', 'getConcreteAd');
     });
